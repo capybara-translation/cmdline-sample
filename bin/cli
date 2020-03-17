@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+const program = require("commander");
+const { upper } = require("../src");
+
+function run({ text }) {
+  if (!text) {
+    return;
+  }
+
+  for (const line of text.replace(/[\r\n]$/, "").split("\n")) {
+    try {
+      console.log(upper(line));
+    } catch (e) {
+      console.error(e.message);
+    }
+  }
+}
+
+program.version("1.0.0").option("-t, --text <text>", "Specify text to convert");
+
+let stdin = "";
+if (process.stdin.isTTY) {
+  program.parse(process.argv);
+  run({ text: program.text });
+} else {
+  process.stdin.on("readable", () => {
+    let chunk;
+    while ((chunk = process.stdin.read()) !== null) {
+      stdin += chunk;
+    }
+  });
+  process.stdin.on("end", () => {
+    program.parse(process.argv);
+    run({ text: stdin });
+  });
+}
